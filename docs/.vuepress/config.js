@@ -6,6 +6,7 @@ module.exports = {
     nav: [
       { text: '前端',link: '/web/' },
       { text: '全栈',link: '/fullStack/' },
+      { text: '框架',link: '/frame/' },
       { text: '通识',link: '/common/' },
       { text: '资讯',link: '/info/' },
       { text: '关于',link: '/about/' },
@@ -17,6 +18,10 @@ module.exports = {
         collapsable: false,
         children: [
           '',
+          'html',
+          'css',
+          'browser',
+          'standard'
         ]
       }],
       '/fullStack/': [{
@@ -25,6 +30,19 @@ module.exports = {
         children: [
           '',
           'mysql',
+          ]
+      }],
+      '/frame/': [{
+        title:'框架',
+        collapsable: false,
+        children: [
+          '',
+          'vue',
+          'postcss',
+          'rxjs',
+          'typescript',
+          'electron',
+          'flutter'
           ]
       }],
       '/common/': [{
@@ -36,6 +54,7 @@ module.exports = {
           'linux',
           'ssh',
           'restful',
+          'network',
           'data-structure',
           'algorithm',
           'design-pattern'
