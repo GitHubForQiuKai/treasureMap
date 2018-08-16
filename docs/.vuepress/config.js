@@ -1,64 +1,233 @@
 module.exports = {
+  locales: {
+    '/': {
+      lang: 'zh-CN',
+      title: 'TreasureMap',
+      description: 'A treasure map of technical knowledge'
+    }
+  },
   title: 'TreasureMap',
   description: 'Just playing around',
-  base:'/treasureMap/',
+  base: '/treasureMap/',
   themeConfig: {
+    repo: 'GitHubForQiuKai/treasureMap',
+    lastUpdated: '上次更新',
+    sidebarDepth: 2,
+    astUpdated: true,
+    docsDir: 'docs',
+    editLinks: true,
+    editLinkText: '帮助我们改善此页面！',
     nav: [
-      { text: '前端',link: '/web/' },
-      { text: '全栈',link: '/fullStack/' },
-      { text: '框架',link: '/frame/' },
-      { text: '通识',link: '/common/' },
-      { text: '资讯',link: '/info/' },
-      { text: '关于',link: '/about/' },
-      { text: 'GitHub',link: 'https://github.com/GitHubForQiuKai/treasureMap' },
+      {
+        text: '前端',
+        items: [
+          { text: 'JS', link: '/web/js/' },
+          { text: 'HTML', link: '/web/html/' },
+          { text: 'CSS', link: '/web/css/' },
+          { text: '浏览器', link: '/web/browser/' },
+        ]
+      },
+      {
+        text: '全栈',
+        items: [
+          { text: 'NodeJS', link: '/fullStack/nodejs/' },
+          { text: 'Mysql', link: '/fullStack/mysql/' },
+        ]
+      },
+      {
+        text: '框架',
+        items: [
+          { text: 'Vue', link: '/frame/vue/' },
+          { text: 'Webpack', link: '/frame/webpack/' },
+          { text: 'PostCSS', link: '/frame/postcss/' },
+          { text: 'RxJS', link: '/frame/rxjs/' },
+          { text: 'TypeScript', link: '/frame/typescript/' },
+          { text: 'Electron', link: '/frame/electron/' },
+          { text: 'Flutter', link: '/frame/flutter/' },
+        ]
+      },
+      {
+        text: '通识',
+        items: [
+          { text: 'Git', link: '/common/git/' },
+          { text: 'Nginx', link: '/common/nginx/' },
+          { text: 'SSH', link: '/common/ssh/' },
+          { text: 'Linux', link: '/common/linux/' },
+          { text: 'Network', link: '/common/network/' },
+          { text: 'RESTful', link: '/common/restful/' },
+          { text: '数据结构', link: '/common/data-structure/' },
+          { text: '算法', link: '/common/algorithm/' },
+          { text: '设计模式', link: '/common/design-pattern/' },
+        ]
+      },
+      {
+        text: '资讯',
+        link: '/info/'
+      },
+      {
+        text: '关于',
+        link: '/about/'
+      },
     ],
     sidebar: {
-      '/web/': [{
-        title:'前端',
+      //前端
+      '/web/js/': [{
+        title: 'JS',
         collapsable: false,
         children: [
           '',
-          'html',
-          'css',
-          'browser',
-          'standard'
         ]
       }],
-      '/fullStack/': [{
-        title:'全栈',
+      '/web/html/': [{
+        title: 'HTML',
         collapsable: false,
         children: [
           '',
-          'mysql',
-          ]
+        ]
       }],
-      '/frame/': [{
-        title:'框架',
+      '/web/css/': [{
+        title: 'CSS',
         collapsable: false,
         children: [
           '',
-          'vue',
-          'postcss',
-          'rxjs',
-          'typescript',
-          'electron',
-          'flutter'
-          ]
+        ]
       }],
-      '/common/': [{
-        title:'通识',
+      '/web/browser/': [{
+        title: '浏览器',
         collapsable: false,
         children: [
           '',
-          'nginx',
-          'linux',
-          'ssh',
-          'restful',
-          'network',
-          'data-structure',
-          'algorithm',
-          'design-pattern'
-          ]
+        ]
+      }],
+      //全栈
+      '/fullStack/nodejs/': [{
+        title: 'NodeJS',
+        collapsable: false,
+        children: [
+          '',
+        ]
+      }],
+      '/fullStack/mysql/': [{
+        title: 'Mysql',
+        collapsable: false,
+        children: [
+          '',
+        ]
+      }],
+      //框架
+      '/frame/vue/': [{
+        title: 'Vue',
+        collapsable: false,
+        children: [
+          '',
+        ]
+      }],
+      '/frame/webpack/': [{
+        title: 'Webpack',
+        collapsable: false,
+        children: [
+          '',
+        ]
+      }],
+      '/frame/postcss/': [{
+        title: 'Vue',
+        collapsable: false,
+        children: [
+          '',
+        ]
+      }],
+      '/frame/rxjs/': [{
+        title: 'RxJS',
+        collapsable: false,
+        children: [
+          '',
+        ]
+      }],
+      '/frame/typescript/': [{
+        title: 'TypeScript',
+        collapsable: false,
+        children: [
+          '',
+        ]
+      }],
+      '/frame/electron/': [{
+        title: 'Electron',
+        collapsable: false,
+        children: [
+          '',
+        ]
+      }],
+      '/frame/flutter/': [{
+        title: 'Flutter',
+        collapsable: false,
+        children: [
+          '',
+        ]
+      }],
+
+      //通识
+      '/common/git/': [{
+        title: 'Git',
+        collapsable: false,
+        children: [
+          '',
+        ]
+      }],
+      '/common/nginx/': [{
+        title: 'Nginx',
+        collapsable: false,
+        children: [
+          '',
+        ]
+      }],
+      '/common/linux/': [{
+        title: 'Linux',
+        collapsable: false,
+        children: [
+          '',
+        ]
+      }],
+      '/common/ssh/': [{
+        title: 'SSH',
+        collapsable: false,
+        children: [
+          '',
+        ]
+      }],
+      '/common/restful/': [{
+        title: 'RESTful',
+        collapsable: false,
+        children: [
+          '',
+        ]
+      }],
+      '/common/network/': [{
+        title: 'Network',
+        collapsable: false,
+        children: [
+          '',
+        ]
+      }],
+      '/common/data-structure/': [{
+        title: '数据结构',
+        collapsable: false,
+        children: [
+          '',
+        ]
+      }],
+      '/common/algorithm/': [{
+        title: '算法',
+        collapsable: false,
+        children: [
+          '',
+        ]
+      }],
+      '/common/design-pattern/': [{
+        title: '设计模式',
+        collapsable: false,
+        children: [
+          '',
+        ]
       }]
     }
   }
