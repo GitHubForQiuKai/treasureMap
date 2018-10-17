@@ -112,6 +112,7 @@ module.exports = {
         collapsable: false,
         children: [
           '',
+          'suoyin'
         ]
       }],
       //框架
