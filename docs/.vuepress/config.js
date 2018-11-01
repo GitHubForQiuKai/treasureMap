@@ -39,6 +39,7 @@ module.exports = {
         items: [
           { text: 'Vue', link: '/frame/vue/' },
           { text: 'Webpack', link: '/frame/webpack/' },
+          { text: 'Babel', link: '/frame/babel/' },
           { text: 'PostCSS', link: '/frame/postcss/' },
           { text: 'RxJS', link: '/frame/rxjs/' },
           { text: 'TypeScript', link: '/frame/typescript/' },
@@ -125,6 +126,13 @@ module.exports = {
       }],
       '/frame/webpack/': [{
         title: 'Webpack',
+        collapsable: false,
+        children: [
+          '',
+        ]
+      }],
+      '/frame/babel/': [{
+        title: 'Babel',
         collapsable: false,
         children: [
           '',

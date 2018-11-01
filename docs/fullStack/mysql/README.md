@@ -109,9 +109,9 @@ using index 和using where只要使用了索引我们基本都能经常看到，
 | 值 | 说明 |
 | ------ | ------ |
 | using index | 使用覆盖索引的时候就会出现 |
-| using where | 在查找使用索引的情况下，需要回表去查询所需的数据 |
 | using index & using where | 查找使用了索引，但是需要的数据都在索引列中能找到，所以不需要回表查询数据 |
+| using where | 在查找使用索引的情况下，需要回表去查询所需的数据 |
 | using index condition | 查找使用了索引，但是需要回表查询数据 |
-| using Flesort	| 表示MySQL需额外排序操作, 不能通过索引顺序达到排序效果 |
+| using Filesort	| 表示MySQL需额外排序操作, 不能通过索引顺序达到排序效果 |
 效率从高到低依次为：
-using index > using where > using index & using where > using index condition > using Flesort
+using index > using index & using where > using where > using index condition > using Filesort
