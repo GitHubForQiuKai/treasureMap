@@ -63,12 +63,5 @@ var FPS = 60;
 setInterval(draw, 1000/FPS);
 // 当draw方法执行耗时大于1000/60 ms时，就会发生丢帧的现象。
 ```
-
-
 ## 总结
 setTimeout()和setInterval()都不能满足精确的时间间隔。假如设定的时间间隔为10ms，则setTimeout(fn, 10)中的fn执行的时间间隔可能大于10ms，而setInterval(fn, 10)中fn执行的时间间隔可能小于10ms。
-
-# XMLHttpRequest
-[XMLHttpRequest.responseType](https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest/responseType)
-
-## 基本介绍

@@ -43,8 +43,8 @@ module.exports = {
           { text: 'PostCSS', link: '/frame/postcss/' },
           { text: 'RxJS', link: '/frame/rxjs/' },
           { text: 'TypeScript', link: '/frame/typescript/' },
-          { text: 'Electron', link: '/frame/electron/' },
           { text: 'Flutter', link: '/frame/flutter/' },
+          { text: 'Electron', link: '/frame/electron/' },
         ]
       },
       {
@@ -80,6 +80,8 @@ module.exports = {
         collapsable: false,
         children: [
           '',
+          'module',
+          'file'
         ]
       }],
       '/web/html/': [{
