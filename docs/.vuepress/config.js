@@ -81,7 +81,8 @@ module.exports = {
         children: [
           '',
           'module',
-          'file'
+          'async-programming',
+          'file',
         ]
       }],
       '/web/html/': [{

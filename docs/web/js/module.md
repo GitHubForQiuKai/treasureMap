@@ -86,7 +86,7 @@ var module = (function($) {
 2009年，美国程序员Ryan Dahl创造了node.js项目，将javascript语言用于服务器端编程。
 这标志"Javascript模块化编程"正式诞生。  
 
-在浏览器环境下，没有模块也不是特别大的问题，毕竟网页程序的复杂性有限；但是在服务器端，一定要有模块，与操作系统和其他应用程序互动，否则根本没法编程。
+在这之前，在浏览器环境下，没有模块也不是特别大的问题，毕竟网页程序的复杂性有限；但是在服务器端，一定要有模块，与操作系统和其他应用程序互动，否则根本没法编程。
 
 ### CommonJS
 #### **实现代表**：nodeJS  
@@ -95,6 +95,24 @@ var module = (function($) {
 这里的CommonJS规范指的是CommonJS Modules/1.0规范。  
 
 CommonJS是一个更偏向于服务器端的规范。NodeJS采用了这个规范。CommonJS的一个模块就是一个脚本文件。
+
+#### 表现形式
+导入：
+```js
+// import.js
+var m1 = require('./export.js');
+
+m1();
+```
+导出：
+```js
+// export.js
+var m1 = function (){};
+
+module.exports = m1;
+//或：exports.m1 = m1; // module.exports 和 exports 在下面会讲到
+```
+
 #### module对象
 Node内部提供一个Module构建函数。所有模块都是Module的实例。
 ```js
@@ -125,6 +143,36 @@ Module {
      '/Users/node_modules',
      '/node_modules' ] }
 ```
+|属性|含义|
+|-|-|
+|module.id|模块标识符，通常是带有绝对路径的模块文件名|
+|module.exports|表示模块对外输入的值|
+|module.parent|表示引用该模块的模块|
+|module.filename|带有绝对路径的模块名|
+|module.loaded|模块是否已加载|
+|module.children|表示该模块引用的其他模块|
+**注**：可根据module.parent是否为null来判断当前模块是否为入口脚本。
+
+#### module.exports和exports
+`exports`其实就是`module.exports`的别名，官方给出的解释：
+![avatar](../../assets/exports-alias.png)
+可以看出，将module.exports作为立即执行函数的第二个参数传入，并重新定义了exports接受它。其实，就可以理解为，在每个模块头部，加上
+```js
+var exports = module.exports;
+```
+**注意：不能直接将exports变量指向一个值，因为这样等于切断了exports与module.exports的引用。**
+
+所以说，下面的一些写法将是无效的，
+```js
+// 例1
+exports = function() {};
+
+// 例2
+exports.m1 = function() {};
+module.exports = 'Hello world';//实际导出的是hello world
+```
+如果你觉得exports与module.exports之间的区别很难分清，一个简单的处理方法，就是放弃使用exports，只使用module.exports。
+
 
 ### AMD
 实现代表：**requireJS**   
