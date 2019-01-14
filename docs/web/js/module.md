@@ -175,7 +175,8 @@ module.exports = 'Hello world';//实际导出的是hello world
 
 
 ### AMD
-实现代表：**requireJS**   
+#### **实现代表**：requireJS
+#### **关键字**：`module.exports`、`exports`、`require`   
 
 ### CMD
 实现代表：**seaJS**   

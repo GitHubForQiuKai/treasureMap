@@ -82,6 +82,7 @@ module.exports = {
           '',
           'module',
           'async-programming',
+          'timer',
           'file',
         ]
       }],
