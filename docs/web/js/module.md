@@ -96,13 +96,14 @@ var module = (function($) {
 
 CommonJS是一个更偏向于服务器端的规范。NodeJS采用了这个规范。CommonJS的一个模块就是一个脚本文件。
 
-#### 表现形式
+#### 形式
 导入：
 ```js
 // import.js
 var m1 = require('./export.js');
 
 m1();
+
 ```
 导出：
 ```js
@@ -176,7 +177,87 @@ module.exports = 'Hello world';//实际导出的是hello world
 
 ### AMD
 #### **实现代表**：requireJS
-#### **关键字**：`module.exports`、`exports`、`require`   
+#### **关键字**：`define`、`require`
+
+#### 背景
+服务端有了commonJS模块后，自然想到，客户端也能不能拥有类似的模块加载机制，而且最好两者能够兼容，一个模块不用修改，在服务器和浏览器都可以运行。
+例：
+```js
+var math = require('math');
+math.add(2, 3);
+```
+
+但是，这样的话会存在一个问题，就是服务器模块是存放在本地硬盘，加载的速度取决于硬盘的读取速度，速度一般很快，可同步加载；而在浏览器端，加载的速度取决于网速，而网速是不可预知的，如果网速过慢，那么，浏览器就会处于“假死”的状态了。
+
+所以，浏览器端的模块，不能采用"同步加载"（synchronous），只能采用"异步加载"（asynchronous）。这就是AMD规范诞生的背景。
+
+#### 形式
+AMD是”Asynchronous Module Definition”的缩写，即”异步模块定义”。它采用异步方式加载模块，模块的加载不影响它后面语句的运行。 
+
+**这里异步指的是不堵塞浏览器其他任务（dom构建，css渲染等），而加载内部是同步的（加载完模块后立即执行回调）。**
+
+导入：
+```js
+require([module], callback);
+```
+- module：代表所需要加载的模板数组。
+- callback：加载完成后的回调。
+
+导出：
+```js
+define(id?, dependencies?, factory);
+```
+- id：模块的名字，如果没有提供该参数，模块的名字应该默认为模块加载器请求的指定脚本的名字。
+- dependencies：模块的依赖，已被模块定义的模块标识的数组字面量。依赖参数是可选的，如果忽略此参数，它默认为 ["require", "exports", "module"]。然而，如果工厂方法的长度属性小于3，加载器会选择以函数的长度属性指定的参数个数调用工厂方法。
+- factory：模块工厂；如果是函数，那么该函数只北、被执行一次；如果是对象，那么就最为模块的返回值。
+
+例1：
+```js
+// add.js
+define('add',function() {
+    return function(x,y) {
+        return x + y;
+    }
+})
+
+// main.js
+require(['add'], function(add) {
+  alert(add(1, 1));
+})
+```
+
+例2：
+```js
+// add.js
+define('add',function() {
+    return function(x,y) {
+        return x + y;
+    }
+})
+
+// divide.js
+define('divide',function() {
+    return function(x,y) {
+        return x / y;
+    }
+})
+
+// math.js
+define('math',['add','divide'],function(add,divide) {
+    return {
+        add: add,
+        divide: divide,
+    };
+})
+
+// main.js
+require(['math'], function(math) {
+  alert(math.add(1, 1));
+  alert(math.divide(1, 1));
+})
+```
+
+当require()函数模块的时候，就会先加载零个或多个依赖，会将所有的依赖都写在define()函数第一个参数数组中，所以说**AMD是依赖前置的**。这不同于CMD规范，它是依赖就近的。
 
 ### CMD
 实现代表：**seaJS**   
