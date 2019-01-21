@@ -12,7 +12,7 @@ module.exports = {
   themeConfig: {
     repo: 'GitHubForQiuKai/treasureMap',
     lastUpdated: '上次更新',
-    sidebarDepth: 2,
+    sidebarDepth: 3,
     astUpdated: true,
     docsDir: 'docs',
     editLinks: true,

@@ -97,21 +97,22 @@ var module = (function($) {
 CommonJS是一个更偏向于服务器端的规范。NodeJS采用了这个规范。CommonJS的一个模块就是一个脚本文件。
 
 #### 形式
-导入：
-```js
-// import.js
-var m1 = require('./export.js');
-
-m1();
-
-```
-导出：
+定义：
 ```js
 // export.js
 var m1 = function (){};
 
 module.exports = m1;
 //或：exports.m1 = m1; // module.exports 和 exports 在下面会讲到
+```
+
+加载：
+```js
+// import.js
+var m1 = require('./export.js');
+
+m1();
+
 ```
 
 #### module对象
@@ -176,7 +177,7 @@ module.exports = 'Hello world';//实际导出的是hello world
 
 
 ### AMD
-#### **实现代表**：requireJS
+#### **实现代表**：[requireJS](https://requirejs.org/docs/api.html#define)
 #### **关键字**：`define`、`require`
 
 #### 背景
@@ -192,24 +193,40 @@ math.add(2, 3);
 所以，浏览器端的模块，不能采用"同步加载"（synchronous），只能采用"异步加载"（asynchronous）。这就是AMD规范诞生的背景。
 
 #### 形式
-AMD是”Asynchronous Module Definition”的缩写，即”异步模块定义”。它采用异步方式加载模块，模块的加载不影响它后面语句的运行。 
+[AMD](https://github.com/amdjs/amdjs-api/wiki/AMD)是”Asynchronous Module Definition”的缩写，即”异步模块定义”。它采用异步方式加载模块，模块的加载不影响它后面语句的运行。 
 
 **这里异步指的是不堵塞浏览器其他任务（dom构建，css渲染等），而加载内部是同步的（加载完模块后立即执行回调）。**
 
-导入：
-```js
-require([module], callback);
-```
-- module：代表所需要加载的模板数组。
-- callback：加载完成后的回调。
+RequireJS的基本思想是，通过define方法，将代码定义为模块；通过require方法，实现代码的模块加载。
 
-导出：
+定义：
 ```js
 define(id?, dependencies?, factory);
 ```
 - id：模块的名字，如果没有提供该参数，模块的名字应该默认为模块加载器请求的指定脚本的名字。
 - dependencies：模块的依赖，已被模块定义的模块标识的数组字面量。依赖参数是可选的，如果忽略此参数，它默认为 ["require", "exports", "module"]。然而，如果工厂方法的长度属性小于3，加载器会选择以函数的长度属性指定的参数个数调用工厂方法。
 - factory：模块工厂；如果是函数，那么该函数只北、被执行一次；如果是对象，那么就最为模块的返回值。
+
+加载：
+```js
+require([module], callback);
+```
+- module：代表所需要加载的模板数组。
+- callback：加载完成后的回调。
+
+#### 独立模块
+如果定义一个模块，不需要依赖其他任何模块，可以直接用define方法生成。
+```js
+define('module',function() {
+    return {
+        method1: function() {},
+        method2: function() {},
+    }
+})
+```
+define定义的模块可以返回任何值，不限于对象。
+
+#### 非独立模块
 
 例1：
 ```js
@@ -222,7 +239,7 @@ define('add',function() {
 
 // main.js
 require(['add'], function(add) {
-  alert(add(1, 1));
+ add(1, 1);
 })
 ```
 
@@ -252,23 +269,457 @@ define('math',['add','divide'],function(add,divide) {
 
 // main.js
 require(['math'], function(math) {
-  alert(math.add(1, 1));
-  alert(math.divide(1, 1));
+  math.add(1, 1);
+  math.divide(1, 1);
 })
 ```
 
+如果依赖的模块很多，参数与模块一一对应的写法非常麻烦。
+```js
+define(
+    ['dep1', 'dep2', 'dep3', 'dep4', 'dep5', 'dep6', 'dep7', 'dep8'],
+    function(dep1,   dep2,   dep3,   dep4,   dep5,   dep6,   dep7,   dep8){
+        ...
+    }
+);
+```
+为了避免像上面代码那样繁琐的写法，RequireJS提供一种更简单的写法。
+```js
+define(
+    function (require) {
+        var dep1 = require('dep1'),
+            dep2 = require('dep2'),
+            dep3 = require('dep3'),
+            dep4 = require('dep4'),
+            dep5 = require('dep5'),
+            dep6 = require('dep6'),
+            dep7 = require('dep7'),
+            dep8 = require('dep8');
+            ...
+    }
+});
+```
 当require()函数模块的时候，就会先加载零个或多个依赖，会将所有的依赖都写在define()函数第一个参数数组中，所以说**AMD是依赖前置的**。这不同于CMD规范，它是依赖就近的。
 
+#### require调用
+- 条件加载
+    ```js
+    require( [ window.JSON ? undefined : 'util/json2' ], function ( JSON ) {
+    JSON = JSON || window.JSON;
+
+    console.log( JSON.parse( '{ "JSON" : "HERE" }' ) );
+    });
+    ```
+    上面代码加载JSON模块时，首先判断浏览器是否原生支持JSON对象。如果是的，则将undefined传入回调函数，否则加载util目录下的json2模块。
+
+- 动态加载
+    ```js
+    define(function ( require ) {
+        var isReady = false, foobar;
+    
+        require(['foo', 'bar'], function (foo, bar) {
+            isReady = true;
+            foobar = foo() + bar();
+        });
+    
+        return {
+            isReady: isReady,
+            foobar: foobar
+        };
+    });
+    ```
+    上面代码所定义的模块，内部加载了foo和bar两个模块，在没有加载完成前，isReady属性值为false，加载完成后就变成了true。因此，可以根据isReady属性的值，决定下一步的动作。
+
+- promise
+    ```js
+    define(['lib/Deferred'], function( Deferred ){
+        var defer = new Deferred(); 
+        require(['lib/templates/?index.html','lib/data/?stats'],
+            function( template, data ){
+                defer.resolve({ template: template, data:data });
+            }
+        );
+        return defer.promise();
+    });
+    ```
+    上面代码的define方法返回一个promise对象，可以在该对象的then方法，指定下一步的动作。
+
+- JSONP
+    ```js
+    require( [ 
+        "http://someapi.com/foo?callback=define"
+    ], function (data) {
+        console.log(data);
+    });
+    ```
+    如果服务器端采用JSONP模式，则可以直接在require中调用，方法是指定JSONP的callback参数为define。
+
+- 错误回调
+    ```js
+    require(
+        [ "backbone" ], 
+        function ( Backbone ) {
+            return Backbone.View.extend({ /* ... */ });
+        }, 
+        function (err) {
+            // ...
+        }
+    );
+    ```
+    require对象还允许指定一个全局性的Error事件的监听函数。所有没有被上面的方法捕获的错误，都会被触发这个监听函数。
+    ```js
+    requirejs.onError = function (err) {
+        // ...
+    };
+    ```
+
+#### config配置
+require方法本身也是一个对象，它带有一个config方法，用来配置require.js运行参数。config方法接受一个对象作为参数。
+```js
+  require.config({
+    baseUrl: "/another/path",
+    paths: {
+        "some": "some/v1.0"
+    },
+    waitSeconds: 15
+  });
+```
+- baseUrl  
+ 指定本地模块的基准目录，即本地模块的路径是相对于那个目录的，该属性通常由requireJS在页面加载时的data-main属性指定。
+
+- paths  
+paths是映射那些不直接放在baseUrl指定的目录下的文件，设置paths的起始位置是相对于baseUrl的，除非该path设置是以”/”开头或含有URL协议(http://或者https://)。
+
+- bundles
+
+- shim  
+解决使用非AMD方式定义的模块(如jquery插件)及其载入顺序，为那些没有使用define()来声明依赖关系，设置模块的”浏览器全局变量注入”型脚本做依赖和导出配置。
+
+- map  
+对于给定的模块前缀，使用一个不同的模块ID来加载该模块。
+
+- config  
+常常需要将配置信息传给一个模块。这些配置往往是application级别的信息，需要一个手段将它们向下传递给模块。在RequireJS中，基于requirejs.config()的config配置项来实现。要获取这些信息的模块可以加载特殊的依赖“module”，并调用module.config()。
+
+- packages  
+从CommonJS包(package)中加载模块。参见从包中加载模块。（链接：http://requirejs.cn/docs/commonjs.html）
+
+- nodeIdCompat  
+Node对待模块example.js和example是一样的.默认在RequireJS中有两个不同的标识。
+
+- waitSeconds  
+ 在放弃加载脚本之前等待的秒数。将其设置为0将禁用超时。默认为7秒。
+
+- context  
+命名一个加载上下文。这允许require.js在同一页面上加载模块的多个版本，如果每个顶层require调用都指定了一个唯一的上下文字符串。
+
+- deps  
+指定要加载的一个依赖数组。当将require设置为一个config object在加载require.js之前使用时很有用。一旦require.js被定义，这些依赖就已加载。使用deps就像调用require([])，但它在loader处理配置完毕之后就立即生效。它并不阻塞其他的require()调用，它仅是指定某些模块作为config块的一部分而异步加载的手段而已。
+
+- callback  
+在deps加载完毕后执行的函数。当将require设置为一个config object在加载require.js之前使用时很有用，其作为配置的deps数组加载完毕后为require指定的函数。
+
+- enforceDefine  
+如果设置为true，则当一个脚本不是通过define()定义且不具备可供检查的shim导出字串值时，就会抛出错误。参考在IE中捕获加载错误一节。
+
+- xhtml  
+ 如果设置为true，document.createElementNS()将用于创建脚本元素。
+
+- urlArgs  
+RequireJS获取资源时附加在URL后面的额外的query参数。作为浏览器或服务器未正确配置时的“cache bust”手段很有用
+
+- scriptType  
+指定RequireJS将script标签插入document时所用的type=""值。默认为“text/javascript”。想要启用Firefox的JavaScript 1.8特性，可使用值“text/javascript;version=1.8”。
+
+- skipDataMain  
+在2.1.9中被引入：如果设置为true,就会跳过data-main属性的扫描启动模块的加载。如果RequireJS嵌入到一个通用的库中以其他页面中的RequireJS交互，且嵌入的版本不会使用data-main加载
+
 ### CMD
-实现代表：**seaJS**   
+#### **实现代表**：seaJS   
+#### **关键字**：`define`、`require`、`export`、`module`、`use`
+
+#### 形式
+[CMD](https://github.com/amdjs/amdjs-api/wiki/AMD)是”Common Module Definition”的缩写。同AMD一样，它采用异步方式加载模块，模块的加载不影响它后面语句的运行。 
+
+SeaJS的基本思想是，通过define方法，将代码定义为模块；通过require方法，实现代码的模块加载。
+
+定义：
+```js
+define(id?, dependencies?, factory);
+```
+- id：模块的名字。
+- dependencies：模块的依赖。
+- factory：模块工厂；可以为函数、对象或字符串。
+
+加载：
+```js
+use([module], callback);
+```
+- module：代表所需要加载的模板数组。
+- callback：加载完成后的回调。
+
+#### define 
+define 接受 factory 参数，factory 可以是一个函数，也可以是一个对象或字符串。
+
+factory 为对象、字符串时，表示模块的接口就是该对象、字符串。比如可以如下定义一个 JSON 数据模块：
+```js
+define({ "foo": "bar" });
+```
+
+也可以通过字符串定义模板模块：
+```js
+define('I am a template. My name is {{name}}.');
+```
+
+factory 为函数时，表示是模块的构造方法。执行该构造方法，可以得到模块向外提供的接口。factory 方法在执行时，默认会传入三个参数：require、exports 和 module：
+```js
+define(function(require, exports, module) {
+
+  // 模块代码
+
+});
+```
+
+define 也可以接受两个以上参数。字符串 id 表示模块标识，数组 deps 是模块依赖。比如：
+```js
+define('hello', ['jquery'], function(require, exports, module) {
+
+  // 模块代码
+
+});
+```
+id 和 deps 参数可以省略。省略时，可以通过构建工具自动生成。
+
+**注意**：带 id 和 deps 参数的 define 用法不属于 CMD 规范，而属于 Modules/Transport 规范。
+
+#### require
+require 是 factory 函数的第一个参数。
+
+##### require(id)
+require 是一个方法，接受 模块标识 作为唯一参数，用来获取其他模块提供的接口。
+```js
+define(function(require, exports) {
+
+  // 获取模块 a 的接口
+  var a = require('./a');
+
+  // 调用模块 a 的方法
+  a.doSomething();
+
+});
+```
+注意：在开发时，require 的书写需要遵循一些 简单约定。
+
+##### require.async require.async(id, callback?)
+require.async 方法用来在模块内部异步加载模块，并在加载完成后执行指定回调。callback 参数可选。
+```js
+define(function(require, exports, module) {
+
+  // 异步加载一个模块，在加载完成时，执行回调
+  require.async('./b', function(b) {
+    b.doSomething();
+  });
+
+  // 异步加载多个模块，在加载完成时，执行回调
+  require.async(['./c', './d'], function(c, d) {
+    c.doSomething();
+    d.doSomething();
+  });
+
+});
+```
+注意：require 是同步往下执行，require.async 则是异步回调执行。require.async 一般用来加载可延迟异步加载的模块。
+
+##### require.resolve require.resolve(id)
+使用模块系统内部的路径解析机制来解析并返回模块路径。该函数不会加载模块，只返回解析后的绝对路径。
+```js
+define(function(require, exports) {
+
+  console.log(require.resolve('./b'));
+  // ==> http://example.com/path/to/b.js
+
+});
+```
+这可以用来获取模块路径，一般用在插件环境或需动态拼接模块路径的场景下。
+
+#### exports
+exports 是一个对象，用来向外提供模块接口。
+```js
+define(function(require, exports) {
+
+  // 对外提供 foo 属性
+  exports.foo = 'bar';
+
+  // 对外提供 doSomething 方法
+  exports.doSomething = function() {};
+
+});
+```
+
+除了给 exports 对象增加成员，还可以使用 return 直接向外提供接口:
+```js
+define(function(require) {
+
+  // 通过 return 直接提供接口
+  return {
+    foo: 'bar',
+    doSomething: function() {}
+  };
+
+});
+```
+
+如果 return 语句是模块中的唯一代码，还可简化为：
+```js
+define({
+  foo: 'bar',
+  doSomething: function() {}
+});
+```
+上面这种格式特别适合定义 JSONP 模块。
+
+特别注意：下面这种写法是错误的！
+```js
+define(function(require, exports) {
+
+  // 错误用法！！!
+  exports = {
+    foo: 'bar',
+    doSomething: function() {}
+  };
+
+});
+```
+
+正确的写法是用 return 或者给 module.exports 赋值：
+```js
+define(function(require, exports, module) {
+
+  // 正确写法
+  module.exports = {
+    foo: 'bar',
+    doSomething: function() {}
+  };
+
+});
+```
+提示：exports 仅仅是 module.exports 的一个引用。在 factory 内部给 exports 重新赋值时，并不会改变 module.exports 的值。因此给 exports 赋值是无效的，不能用来更改模块接口。
+
+#### module
+module 是一个对象，上面存储了与当前模块相关联的一些属性和方法。
+
+##### module.id
+模块的唯一标识。
+```js
+define('id', [], function(require, exports, module) {
+
+  // 模块代码
+
+});
+```
+上面代码中，define 的第一个参数就是模块标识。
+
+##### module.uri
+根据模块系统的路径解析规则得到的模块绝对路径。
+```js
+define(function(require, exports, module) {
+
+  console.log(module.uri); 
+  // ==> http://example.com/path/to/this/file.js
+
+});
+```
+一般情况下（没有在 define 中手写 id 参数时），module.id 的值就是 module.uri，两者完全相同。
+
+##### module.dependencies
+dependencies 是一个数组，表示当前模块的依赖。
+
+##### module.exports
+当前模块对外提供的接口。
+
+传给 factory 构造方法的 exports 参数是 module.exports 对象的一个引用。只通过 exports 参数来提供接口，有时无法满足开发者的所有需求。 比如当模块的接口是某个类的实例时，需要通过 module.exports 来实现：
+```js
+define(function(require, exports, module) {
+
+  // exports 是 module.exports 的一个引用
+  console.log(module.exports === exports); // true
+
+  // 重新给 module.exports 赋值
+  module.exports = new SomeClass();
+
+  // exports 不再等于 module.exports
+  console.log(module.exports === exports); // false
+
+});
+```
+
+注意：对 module.exports 的赋值需要同步执行，不能放在回调函数里。下面这样是不行的：
+```js
+// x.js
+define(function(require, exports, module) {
+
+  // 错误用法
+  setTimeout(function() {
+    module.exports = { a: "hello" };
+  }, 0);
+
+});
+```
+
+在 y.js 里有调用到上面的 x.js:
+```js
+// y.js
+define(function(require, exports, module) {
+
+  var x = require('./x');
+
+  // 无法立刻得到模块 x 的属性 a
+  console.log(x.a); // undefined
+
+});
+```
+
+#### define.cmd  
+一个空对象，可用来判定当前页面是否有 CMD 模块加载器：
+```js
+if (typeof define === "function" && define.cmd) {
+  // 有 Sea.js 等 CMD 模块加载器存在
+}
+```
+
+这就是 CMD 模块定义规范的所有内容。经常使用的 API 只有 define, require, require.async, exports, module.exports 这五个。其他 API 有个印象就好，在需要时再来查文档，不用刻意去记。
+
+与 RequireJS 的 AMD 规范相比，CMD 规范尽量保持简单，并与 CommonJS 和 Node.js 的 Modules 规范保持了很大的兼容性。通过 CMD 规范书写的模块，可以很容易在 Node.js 中运行，后续会介绍。
 
 ### UMD
-实现代表：**nodejs**   
+通用模块定义规范，“Universal Module Definition”，
+是一种兼容 CommonJS 以及 AMD的写法，具体实现就是使用一个立即执行的函数，然后将当前的运行环境 this 以及 factory 传过去，它会优先判断是否支持 AMD 环境，然后判断是否支持 CommonJS 环境来加载模块。
+```js
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD
+        define(['jquery', 'lodash'], factory);
+    } else if (typeof exports === 'object') {
+        // CommonJS
+        module.exports = factory(require('jquery'), require('lodash'));
+    } else {
+        // 在浏览器里面的全局变量即 window
+        root.returnExports = factory(root.jQuery, root._);
+    }
+}(this, function ($, _) {
+    function a(){};    //    没被返回，私有方法
+    function b(){};    //    被返回了，公有方法
+    function c(){};    //    被返回了，公有方法
+    //暴露对外的接口
+    return {
+        b: b,
+        c: c
+    }
+}));
+```
 
 ### ES6 Module
 实现代表：**ECMAScript 2015**   
 关键字：`import`、`export`、`export default`
-
-## 编写
 
 ## 加载机制
