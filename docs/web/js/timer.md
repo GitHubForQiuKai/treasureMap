@@ -1,5 +1,4 @@
-# setTimeout/setInterval
-
+# 定时器
 ## 基本介绍
 - #### setTimeout 延时执行
     setTimeout(fn,1000)，1000ms后执行fn

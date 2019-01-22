@@ -706,7 +706,7 @@ if (typeof define === "function" && define.cmd) {
         // 在浏览器里面的全局变量即 window
         root.returnExports = factory(root.jQuery, root._);
     }
-}(this, function ($, _) {
+}(this, function ($, _) {// 模块工厂需要JQuery和lodash两个依赖
     function a(){};    //    没被返回，私有方法
     function b(){};    //    被返回了，公有方法
     function c(){};    //    被返回了，公有方法
@@ -719,7 +719,270 @@ if (typeof define === "function" && define.cmd) {
 ```
 
 ### ES6 Module
-实现代表：**ECMAScript 2015**   
-关键字：`import`、`export`、`export default`
+#### **实现代表**：ECMAScript 2015
+#### **关键字**：`import`、`export`、`export default`
+
+ES6 的模块自动采用严格模式，不管你有没有在模块头部加上"use strict";。
+
+严格模式主要有以下限制。
+
+- 变量必须声明后再使用
+- 函数的参数不能有同名属性，否则报错
+- 不能使用with语句
+- 不能对只读属性赋值，否则报错
+- 不能使用前缀 0 表示八进制数，否则报错
+- 不能删除不可删除的属性，否则报错
+- 不能删除变量delete prop，会报错，只能删除属性delete global[prop]
+- eval不会在它的外层作用域引入变量
+- eval和arguments不能被重新赋值
+- arguments不会自动反映函数参数的变化
+- 不能使用arguments.callee
+- 不能使用arguments.caller
+- 禁止this指向全局对象
+- 不能使用fn.caller和fn.arguments获取函数调用的堆栈
+- 增加了保留字（比如protected、static和interface）
+
+#### 形式
+定义：
+```js
+// export.js
+export var name = "LiLei"
+```
+
+加载：
+```js
+// import.js
+import { name } from './export.js'; 
+console.log(name);// LiLei
+```
+
+#### export
+基本写法
+```js
+// profile.js
+export var firstName = 'Michael';
+export var lastName = 'Jackson';
+export var year = 1958;
+```
+
+对象写法
+```js
+// profile.js
+var firstName = 'Michael';
+var lastName = 'Jackson';
+var year = 1958;
+
+export {firstName, lastName, year};
+```
+
+函数
+```js
+// 写法1
+export function multiply(x, y) {
+  return x * y;
+};
+
+// 写法2
+function multiply(x, y) {
+  return x * y;
+};
+export { multiply }
+```
+
+类
+```js
+// 写法1
+export class Math {
+};
+
+// 写法2
+class Math {
+};
+export { Math }
+```
+
+重命名
+```js
+function v1() { ... }
+function v2() { ... }
+
+export {
+  v1 as streamV1,
+  v2 as streamV2,
+  v2 as streamLatestVersion
+};
+```
+
+动态绑定
+```js
+export var foo = 'bar';
+setTimeout(() => foo = 'baz', 500);
+```
+
+export命令可以出现在模块的任何位置，但要处于模块顶层就可以
+```js
+function foo() {
+  export default 'bar' // SyntaxError
+}
+foo()
+```
+
+#### import
+基本写法
+```js
+// main.js
+import {firstName, lastName, year} from './profile.js';
+
+function setName(element) {
+  element.textContent = firstName + ' ' + lastName;
+}
+```
+
+重命名
+```js
+import { lastName as surname } from './profile.js';
+```
+
+只读的
+```js
+import {a} from './xxx.js'
+
+a = {}; // Syntax Error : 'a' is read-only;
+
+a.foo = 'hello'; // 赋值是合法操作
+```
+
+变量提升
+```js
+foo();
+// import命令具有提升效果，会提升到整个模块的头部，首先执行。
+import { foo } from 'my_module';
+```
+
+静态执行
+```js
+// import是静态执行，所以不能使用表达式和变量，这些只有在运行时才能得到结果的语法结构。
+
+// 报错
+import { 'f' + 'oo' } from 'my_module';
+
+// 报错
+let module = 'my_module';
+import { foo } from module;
+
+// 报错
+if (x === 1) {
+  import { foo } from 'module1';
+} else {
+  import { foo } from 'module2';
+}
+```
+
+模块执行
+```js
+// 仅仅执行lodash模块，但是不输入任何值。
+import 'lodash';
+```
+
+#### export default
+使用import命令的时候，用户需要知道所要加载的变量名或函数名，否则无法加载。但是，用户肯定希望快速上手，未必愿意阅读文档，去了解模块有哪些属性和方法。
+
+```js
+// export-default.js
+export default function () {
+  console.log('foo');
+}
+```
+
+其他模块加载该模块时，import命令可以为该匿名函数指定任意名字。
+```js
+// import-default.js
+import customName from './export-default';
+customName(); // 'foo'
+```
+上面代码的import命令，可以用任意名称指向export-default.js输出的方法，这时就不需要知道原模块输出的函数名。
+
+需要注意的是，这时import命令后面，不使用大括号。  
+
+
+非匿名函数
+```js
+// export-default.js
+export default function foo() {
+  console.log('foo');
+}
+
+// 或者写成
+function foo() {
+  console.log('foo');
+}
+
+export default foo;
+```
+
+与export比较
+```js
+// 第一组
+export default function crc32() { // 输出：带default
+  // ...
+}
+import crc32 from 'crc32'; // 输入
+
+// 第二组
+export function crc32() { // 输出:不带default
+  // ...
+};
+import {crc32} from 'crc32'; // 输入
+```
+
+本质上，**export default就是输出一个叫做default的变量、类或方法，并且将后面的值，赋给default变量，然后系统允许你为它取任意名字**。所以，下面的写法是有效的。
+```js
+// modules.js
+function add(x, y) {
+  return x * y;
+}
+export {add as default};
+// 等同于
+// export default add;
+
+// app.js
+import { default as foo } from 'modules';
+// 等同于
+// import foo from 'modules';
+```
+
+变量
+```js
+// 正确
+export var a = 1;
+
+// 正确
+var a = 1;
+export default a;
+
+// 错误
+export default var a = 1;
+```
+
+值
+```js
+// 正确
+export default 42;
+
+// 报错
+export 42;
+```
+
+类
+```js
+// MyClass.js
+export default class { ... }
+
+// main.js
+import MyClass from 'MyClass';
+let o = new MyClass();
+```
+
+### AMD与CMD异同
 
 ## 加载机制
