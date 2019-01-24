@@ -154,6 +154,7 @@ Module {
 |module.loaded|模块是否已加载|
 |module.children|表示该模块引用的其他模块|
 |module.paths|表示该模块可能存在的路径|
+
 **注**：可根据module.parent是否为null来判断当前模块是否为入口脚本。
 
 #### module.exports和exports
