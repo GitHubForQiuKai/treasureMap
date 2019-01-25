@@ -113,6 +113,7 @@ module.exports = {
         collapsable: false,
         children: [
           '',
+          'module'
         ]
       }],
       '/fullStack/mysql/': [{
