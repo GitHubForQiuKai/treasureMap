@@ -57,10 +57,119 @@ Module._extensions['.node'] = function(module, filename) {
 
 + **IV. 抛出 "not found"**
 
-## Module对象
+带缓存的情况  
+![avatar](../../assets/nodejs-require.jpg)
 
-了解了模块的加载规则后，下面就将对照源码进行一步步分析。
+## Module
+
+了解了模块的加载规则后，下面就将对照源码进行分析，本文引用的源码是简化过的。
 
 其实，简单来说加载模块无非就是两步：
 + 1. 根据X找到模块的具体位置。
 + 2. 根据找到的位置加载模块。
+
+### module构造函数
+```js
+function Module(id, parent) {
+  this.id = id;
+  this.exports = {};
+  this.parent = parent;
+  updateChildren(parent, this, false); // 更新给定父模块的children 
+  this.filename = null;
+  this.loaded = false;
+  this.children = [];
+}
+```
+具体参数[可参考](https://githubforqiukai.github.io/treasureMap/web/js/module.html#commonjs)。
+
+
+### require方法
+
+每个模块实例都有一个`require`方法。
+
+```js
+Module.prototype.require = function(id) {
+    return Module._load(id, this, /* isMain */ false);
+};
+```
+
+可以看出，`require`方法并不是全局方法，而是每个`module`实例上的一个方法，也就是说，只有在模块内部才能使用`require`命令。
+
+而之所以，能够在每个文件/模块调用`require`方法，是因为，在编译`_compile`模块时对模块进行了`wrap`包装。
+``` js{3}
+Module.prototype._compile = function(content, filename) {
+   // create wrapper function
+  var wrapper = Module.wrap(content);
+
+  var compiledWrapper = vm.runInThisContext(wrapper, {
+    filename: filename,
+    lineOffset: 0,
+    displayErrors: true,
+    importModuleDynamically: experimentalModules ? async (specifier) => {
+      if (asyncESM === undefined) lazyLoadESM();
+      const loader = await asyncESM.loaderPromise;
+      return loader.import(specifier, normalizeReferrerURL(filename));
+    } : undefined,
+  });
+}
+```
+
+`wrap`方法的具体实现：
+```js
+Module.wrap = function(script) {
+  return Module.wrapper[0] + script + Module.wrapper[1];
+};
+
+Module.wrapper = [
+  '(function (exports, require, module, __filename, __dirname) { ',
+  '\n});'
+];
+```
+会将`exports`, `require`, `module`, `__filename`, `__dirname`作为每个模块内部的全局变量。
+
+下面来看 Module._load 的源码。
+```js
+Module._load = function(request, parent, isMain) {
+  if (parent) {
+    debug('Module._load REQUEST %s parent: %s', request, parent.id);
+  }
+  
+   //  计算绝对路径
+  var filename = Module._resolveFilename(request, parent, isMain);
+  
+  //  第一步：如果有缓存，取出缓存
+  var cachedModule = Module._cache[filename];
+  if (cachedModule) {
+    updateChildren(parent, cachedModule, true);
+    return cachedModule.exports;
+  }
+  
+  // 第二步：是否为内置模块
+  if (NativeModule.canBeRequiredByUsers(filename)) {
+    debug('load native module %s', request);
+    return NativeModule.require(filename);
+  }
+
+  // 第三步：生成模块实例
+  var module = new Module(filename, parent);
+
+  // 是否是主程序入口
+  if (isMain) {
+    process.mainModule = module;
+    module.id = '.';
+  }
+  
+  // 第三步：存入缓存
+  Module._cache[filename] = module;
+  
+  // 第四步：尝试加载模块
+  tryModuleLoad(module, filename);
+  
+  // 第五步：输出模块的exports属性
+  return module.exports;
+};
+```
+
+::: tip
+当 Node.js 直接运行一个文件时，`require.main` 会被设为它的 `module`。 这意味着可以通过 `require.main === module` 来判断一个文件是否被直接运行：
+:::
