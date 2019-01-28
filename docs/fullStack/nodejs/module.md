@@ -114,7 +114,7 @@ Module.prototype._compile = function(content, filename) {
 }
 ```
 
-`wrap`方法的具体实现：
+`Module.wrap`方法：
 ```js
 Module.wrap = function(script) {
   return Module.wrapper[0] + script + Module.wrapper[1];
@@ -127,7 +127,7 @@ Module.wrapper = [
 ```
 会将`exports`, `require`, `module`, `__filename`, `__dirname`作为每个模块内部的全局变量。
 
-下面来看 Module._load 的源码。
+`Module._load`方法：
 ```js
 Module._load = function(request, parent, isMain) {
   if (parent) {
@@ -173,3 +173,136 @@ Module._load = function(request, parent, isMain) {
 ::: tip
 当 Node.js 直接运行一个文件时，`require.main` 会被设为它的 `module`。 这意味着可以通过 `require.main === module` 来判断一个文件是否被直接运行：
 :::
+
+`Module._resolveFilename`方法：
+```js
+Module._resolveFilename = function(request, parent, isMain, options) {
+  // 第一步：如果是原生模块，直接返回
+  if (NativeModule.canBeRequiredByUsers(request)) {
+    return request;
+  }
+
+  var paths;
+
+  if (typeof options === 'object' && options !== null &&
+      Array.isArray(options.paths)) {
+   // ...
+  } else {
+    // 第二步：查找所有可能的路径
+    paths = Module._resolveLookupPaths(request, parent, true);
+  }
+
+  // 第三步：获取真正的路径
+  var filename = Module._findPath(request, paths, isMain);
+  if (!filename) {
+    // eslint-disable-next-line no-restricted-syntax
+    var err = new Error(`Cannot find module '${request}'`);
+    err.code = 'MODULE_NOT_FOUND';
+    throw err;
+  }
+  return filename;
+};
+```
+
+`Module._resolveLookupPaths`方法：
+```js
+var modulePaths = [];
+Module._resolveLookupPaths = function(request, parent, newReturn) {
+  if (NativeModule.canBeRequiredByUsers(request)) {
+    debug('looking for %j in []', request);
+    return (newReturn ? null : [request, []]);
+  }
+
+  // 如果不是相对路径
+  // CHAR_DOT: .
+  // CHAR_FORWARD_SLASH: /
+  // CHAR_BACKWARD_SLASH: \
+  if (request.length < 2 || 
+      request.charCodeAt(0) !== CHAR_DOT ||
+      (request.charCodeAt(1) !== CHAR_DOT && request.charCodeAt(1) !== CHAR_FORWARD_SLASH && (!isWindows || request.charCodeAt(1) !== CHAR_BACKWARD_SLASH))
+     ) {
+    var paths = modulePaths;
+    if (parent) {
+      if (!parent.paths)
+        paths = parent.paths = [];
+      else
+        paths = parent.paths.concat(paths);
+    }
+
+    // 如果是require('.')
+    if (request === '.') {
+      if (parent && parent.filename) {
+        paths.unshift(path.dirname(parent.filename));
+      } else {
+        paths.unshift(path.resolve(request));
+      }
+    }
+
+    debug('looking for %j in %j', request, paths);
+    return (newReturn ? (paths.length > 0 ? paths : null) : [request, paths]);
+  }
+
+  // 如果父模块不存在
+  if (!parent || !parent.id || !parent.filename) {
+    // Make require('./path/to/foo') work - normally the path is taken
+    // from realpath(__filename) but with eval there is no filename
+    var mainPaths = ['.'].concat(Module._nodeModulePaths('.'), modulePaths);
+
+    debug('looking for %j in %j', request, mainPaths);
+    return (newReturn ? mainPaths : [request, mainPaths]);
+  }
+
+  // Is the parent an index module?
+  // We can assume the parent has a valid extension,
+  // as it already has been accepted as a module.
+  const base = path.basename(parent.filename);
+  var parentIdPath;
+  if (base.length > indexLen) {
+    var i = 0;
+    for (; i < indexLen; ++i) {
+      if (indexChars[i] !== base.charCodeAt(i))
+        break;
+    }
+    if (i === indexLen) {
+      // We matched 'index.', let's validate the rest
+      for (; i < base.length; ++i) {
+        const code = base.charCodeAt(i);
+        if (code !== CHAR_UNDERSCORE &&
+            (code < CHAR_0 || code > CHAR_9) &&
+            (code < CHAR_UPPERCASE_A || code > CHAR_UPPERCASE_Z) &&
+            (code < CHAR_LOWERCASE_A || code > CHAR_LOWERCASE_Z))
+          break;
+      }
+      if (i === base.length) {
+        // Is an index module
+        parentIdPath = parent.id;
+      } else {
+        // Not an index module
+        parentIdPath = path.dirname(parent.id);
+      }
+    } else {
+      // Not an index module
+      parentIdPath = path.dirname(parent.id);
+    }
+  } else {
+    // Not an index module
+    parentIdPath = path.dirname(parent.id);
+  }
+  var id = path.resolve(parentIdPath, request);
+
+  // Make sure require('./path') and require('path') get distinct ids, even
+  // when called from the toplevel js file
+  if (parentIdPath === '.' &&
+      id.indexOf('/') === -1 &&
+      (!isWindows || id.indexOf('\\') === -1)) {
+    id = './' + id;
+  }
+
+  debug('RELATIVE: requested: %s set ID to: %s from %s', request, id,
+        parent.id);
+
+  var parentDir = [path.dirname(parent.filename)];
+  debug('looking for %j in %j', id, parentDir);
+  return (newReturn ? parentDir : [id, parentDir]);
+};
+```
