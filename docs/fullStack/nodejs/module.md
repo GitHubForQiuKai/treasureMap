@@ -129,6 +129,7 @@ Module.wrapper = [
 
 `Module._load`方法：
 ```js
+// parent就是require当前调用者
 Module._load = function(request, parent, isMain) {
   if (parent) {
     debug('Module._load REQUEST %s parent: %s', request, parent.id);
@@ -159,13 +160,13 @@ Module._load = function(request, parent, isMain) {
     module.id = '.';
   }
   
-  // 第三步：存入缓存
+  // 第四步：存入缓存
   Module._cache[filename] = module;
   
-  // 第四步：尝试加载模块
+  // 第五步：尝试加载模块
   tryModuleLoad(module, filename);
   
-  // 第五步：输出模块的exports属性
+  // 第六步：输出模块的exports属性
   return module.exports;
 };
 ```
@@ -174,7 +175,7 @@ Module._load = function(request, parent, isMain) {
 当 Node.js 直接运行一个文件时，`require.main` 会被设为它的 `module`。 这意味着可以通过 `require.main === module` 来判断一个文件是否被直接运行：
 :::
 
-`Module._resolveFilename`方法：
+#### `Module._resolveFilename`方法：
 ```js
 Module._resolveFilename = function(request, parent, isMain, options) {
   // 第一步：如果是原生模块，直接返回
@@ -195,7 +196,6 @@ Module._resolveFilename = function(request, parent, isMain, options) {
   // 第三步：获取真正的路径
   var filename = Module._findPath(request, paths, isMain);
   if (!filename) {
-    // eslint-disable-next-line no-restricted-syntax
     var err = new Error(`Cannot find module '${request}'`);
     err.code = 'MODULE_NOT_FOUND';
     throw err;
@@ -204,9 +204,12 @@ Module._resolveFilename = function(request, parent, isMain, options) {
 };
 ```
 
-`Module._resolveLookupPaths`方法：
+#### `Module._resolveLookupPaths`方法：
 ```js
 var modulePaths = [];
+var indexChars = [ 105, 110, 100, 101, 120, 46 ]; // 'index.' 的charcode
+var indexLen = indexChars.length;
+
 Module._resolveLookupPaths = function(request, parent, newReturn) {
   if (NativeModule.canBeRequiredByUsers(request)) {
     debug('looking for %j in []', request);
@@ -252,19 +255,19 @@ Module._resolveLookupPaths = function(request, parent, newReturn) {
     return (newReturn ? mainPaths : [request, mainPaths]);
   }
 
-  // Is the parent an index module?
-  // We can assume the parent has a valid extension,
-  // as it already has been accepted as a module.
+  // 获取父模块的名称
   const base = path.basename(parent.filename);
   var parentIdPath;
   if (base.length > indexLen) {
     var i = 0;
+    // 依次循环和'index.'的charcode进行判断
     for (; i < indexLen; ++i) {
       if (indexChars[i] !== base.charCodeAt(i))
         break;
     }
+    // 说明匹配了'index.'
     if (i === indexLen) {
-      // We matched 'index.', let's validate the rest
+      // 循环匹配'index.'后剩余的charcode
       for (; i < base.length; ++i) {
         const code = base.charCodeAt(i);
         if (code !== CHAR_UNDERSCORE &&
@@ -274,24 +277,23 @@ Module._resolveLookupPaths = function(request, parent, newReturn) {
           break;
       }
       if (i === base.length) {
-        // Is an index module
+        // 是index 调用的模块
         parentIdPath = parent.id;
       } else {
-        // Not an index module
+        // 不是index 调用的模块
         parentIdPath = path.dirname(parent.id);
       }
     } else {
-      // Not an index module
+       // 不是index 调用的模块
       parentIdPath = path.dirname(parent.id);
     }
   } else {
-    // Not an index module
+    // 不是index 调用的模块
     parentIdPath = path.dirname(parent.id);
   }
   var id = path.resolve(parentIdPath, request);
 
-  // Make sure require('./path') and require('path') get distinct ids, even
-  // when called from the toplevel js file
+  // 确保require('./path') 和 require('path') 的id是不同的
   if (parentIdPath === '.' &&
       id.indexOf('/') === -1 &&
       (!isWindows || id.indexOf('\\') === -1)) {
@@ -305,4 +307,151 @@ Module._resolveLookupPaths = function(request, parent, newReturn) {
   debug('looking for %j in %j', id, parentDir);
   return (newReturn ? parentDir : [id, parentDir]);
 };
+```
+
+下面的数组，就是模块所有可能的路径。基本上是，从当前路径开始一级级向上寻找 node_modules 子目录。
+```js
+[ '/Users/qiukai/Desktop/node_modules',
+  '/Users/qiukai/node_modules',
+  '/Users/node_modules',
+  '/node_modules' ]
+```
+
+有了上面的路径，就可以找出真正的模块路径了，
+#### `Module._findPath`方法：
+```js
+Module._findPath = function(request, paths, isMain) {
+  // 如果是绝对路径，就不再搜索
+  if (path.isAbsolute(request)) {
+    paths = [''];
+  } else if (!paths || paths.length === 0) {
+    return false;
+  }
+
+  // 缓存key为：包含所有可能的路径，以空格连接
+  var cacheKey = request + '\x00' +
+                (paths.length === 1 ? paths[0] : paths.join('\x00'));
+
+  // 查找缓存，如果存在，则返回
+  var entry = Module._pathCache[cacheKey];
+  if (entry)
+    return entry;
+
+  var exts;
+  // 判断是否是有后缀为'/'的目录
+  var trailingSlash = request.length > 0 &&
+    request.charCodeAt(request.length - 1) === CHAR_FORWARD_SLASH;
+  if (!trailingSlash) {
+    trailingSlash = /(?:^|\/)\.?\.$/.test(request);
+  }
+
+  // 遍历路径
+  for (var i = 0; i < paths.length; i++) {
+    // 如果路径不存在，则不进一步搜索
+    const curPath = paths[i];
+    if (curPath && stat(curPath) < 1) continue;
+    var basePath = path.resolve(curPath, request);
+    var filename;
+
+    var rc = stat(basePath);
+    if (!trailingSlash) {
+      // 如果是文件
+      if (rc === 0) {
+        if (!isMain) {
+          if (preserveSymlinks) {
+            filename = path.resolve(basePath);
+          } else {
+            filename = toRealPath(basePath);
+          }
+        } else if (preserveSymlinksMain) {
+          // 如果是通过命令启动
+          filename = path.resolve(basePath);
+        } else {
+          // 获取真实路径
+          filename = toRealPath(basePath);
+        }
+      }
+
+      if (!filename) {
+        // 尝试获取后缀为'js'、'json'、'node'的文件
+        if (exts === undefined) exts = Object.keys(Module._extensions);
+        filename = tryExtensions(basePath, exts, isMain);
+      }
+    }
+
+    // 如果是目录
+    if (!filename && rc === 1) {
+      if (exts === undefined) exts = Object.keys(Module._extensions);
+
+      // 尝试通过目录下的 package.json获取
+      filename = tryPackage(basePath, exts, isMain);
+
+      // 如果package.json不存在
+      if (!filename) {
+        // 尝试获取目录下，后缀为'index'分别加上'js'、'json'、'node'的文件
+        filename = tryExtensions(path.resolve(basePath, 'index'), exts, isMain);
+      }
+    }
+
+    if (filename) {
+      // 如果是require('.')，警告
+      if (request === '.' && i > 0) {
+        if (!warned) {
+          warned = true;
+          process.emitWarning(
+            'warning: require(\'.\') resolved outside the package ' +
+            'directory. This functionality is deprecated and will be removed ' +
+            'soon.',
+            'DeprecationWarning', 'DEP0019');
+        }
+      }
+
+      // 放入缓存，并返回
+      Module._pathCache[cacheKey] = filename;
+      return filename;
+    }
+  }
+  return false;
+};
+```
+
+#### `tryPackage`方法：
+```js
+function tryPackage(requestPath, exts, isMain) {
+  var pkg = readPackage(requestPath);
+
+  if (!pkg) return false;
+
+  var filename = path.resolve(requestPath, pkg);
+  return tryFile(filename, isMain) ||
+         tryExtensions(filename, exts, isMain) ||
+         tryExtensions(path.resolve(filename, 'index'), exts, isMain);
+}
+
+const packageMainCache = Object.create(null);
+function readPackage(requestPath) {
+  const entry = packageMainCache[requestPath];
+  if (entry)
+    return entry;
+
+  const jsonPath = path.resolve(requestPath, 'package.json');
+  const json = internalModuleReadJSON(path.toNamespacedPath(jsonPath));
+
+  if (json === undefined) {
+    return false;
+  }
+
+  if (manifest) {
+    const jsonURL = pathToFileURL(jsonPath);
+    manifest.assertIntegrity(jsonURL, json);
+  }
+
+  try {
+    return packageMainCache[requestPath] = JSON.parse(json).main;
+  } catch (e) {
+    e.path = jsonPath;
+    e.message = 'Error parsing ' + jsonPath + ': ' + e.message;
+    throw e;
+  }
+}
 ```

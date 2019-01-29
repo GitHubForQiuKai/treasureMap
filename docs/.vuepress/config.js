@@ -85,6 +85,7 @@ module.exports = {
           '',
           'module',
           'async-programming',
+          'RegExp',
           'timer',
           'file',
         ]
