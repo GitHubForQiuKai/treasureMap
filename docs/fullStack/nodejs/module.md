@@ -83,7 +83,7 @@ function Module(id, parent) {
 具体参数[可参考](https://githubforqiukai.github.io/treasureMap/web/js/module.html#commonjs)。
 
 
-### require方法
+### 获取模块
 
 每个模块实例都有一个`require`方法。
 
@@ -128,7 +128,7 @@ Module.wrapper = [
 会将`exports`, `require`, `module`, `__filename`, `__dirname`作为每个模块内部的全局变量。
 
 `Module._load`方法：
-```js
+```js {8}
 // parent就是require当前调用者
 Module._load = function(request, parent, isMain) {
   if (parent) {
@@ -176,7 +176,7 @@ Module._load = function(request, parent, isMain) {
 :::
 
 #### `Module._resolveFilename`方法：
-```js
+```js {14}
 Module._resolveFilename = function(request, parent, isMain, options) {
   // 第一步：如果是原生模块，直接返回
   if (NativeModule.canBeRequiredByUsers(request)) {
@@ -329,13 +329,11 @@ Module._findPath = function(request, paths, isMain) {
   }
 
   // 缓存key为：包含所有可能的路径，以空格连接
-  var cacheKey = request + '\x00' +
-                (paths.length === 1 ? paths[0] : paths.join('\x00'));
+  var cacheKey = request + '\x00' + (paths.length === 1 ? paths[0] : paths.join('\x00'));
 
   // 查找缓存，如果存在，则返回
   var entry = Module._pathCache[cacheKey];
-  if (entry)
-    return entry;
+  if (entry) return entry;
 
   var exts;
   // 判断是否是有后缀为'/'的目录
@@ -415,26 +413,34 @@ Module._findPath = function(request, paths, isMain) {
 };
 ```
 
+通过package.json来获取。
 #### `tryPackage`方法：
-```js
+```js {3}
 function tryPackage(requestPath, exts, isMain) {
+  // 读取package.json下main的值
   var pkg = readPackage(requestPath);
 
   if (!pkg) return false;
 
+  // 解析为绝对路径
   var filename = path.resolve(requestPath, pkg);
+  // 尝试获取指定路径的文件
+  // 尝试获取后缀为'js'、'json'、'node'的文件
+  // 尝试获取后缀为'index'分别加上'js'、'json'、'node'的文件
   return tryFile(filename, isMain) ||
          tryExtensions(filename, exts, isMain) ||
          tryExtensions(path.resolve(filename, 'index'), exts, isMain);
 }
 
 const packageMainCache = Object.create(null);
+
 function readPackage(requestPath) {
   const entry = packageMainCache[requestPath];
   if (entry)
     return entry;
 
   const jsonPath = path.resolve(requestPath, 'package.json');
+  // 将文件内容转换为json
   const json = internalModuleReadJSON(path.toNamespacedPath(jsonPath));
 
   if (json === undefined) {
@@ -447,6 +453,7 @@ function readPackage(requestPath) {
   }
 
   try {
+    // 返回并放入缓存
     return packageMainCache[requestPath] = JSON.parse(json).main;
   } catch (e) {
     e.path = jsonPath;
@@ -455,3 +462,46 @@ function readPackage(requestPath) {
   }
 }
 ```
+
+### 加载模块
+
+找到模块的位置后，就要加载模块了
+`Module.load`方法
+```js {12}
+Module.prototype.load = function(filename) {
+  debug('load %j for module %j', filename, this.id);
+
+  assert(!this.loaded);
+  this.filename = filename;
+  this.paths = Module._nodeModulePaths(path.dirname(filename));
+ 
+  // 查找模块的真正的后缀名
+  var extension = findLongestRegisteredExtension(filename);
+
+  // 调用指定后缀名的处理方法
+  Module._extensions[extension](this, filename);
+  this.loaded = true;
+  
+  //...
+  }
+};
+```
+
+下面看看后缀名为`.js`的处理方法
+```js
+Module._extensions['.js'] = function(module, filename) {
+  var content = fs.readFileSync(filename, 'utf8');
+  // 将模块文件读取成字符串，然后剥离 utf8 编码特有的BOM文件头，最后编译该模块。
+  module._compile(stripBOM(content), filename);
+};
+```
+
+具体编译实现可查看[前文](#获取模块)中的介绍。
+其实，就相当于
+```js
+(function (exports, require, module, __filename, __dirname) {
+  // 模块源码
+});
+```
+
+**所以说，模块的加载实质上就是，注入exports、require、module三个全局变量，然后执行模块的源码，然后将模块的 exports 变量的值输出。**
