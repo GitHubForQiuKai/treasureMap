@@ -206,6 +206,7 @@ module.exports = {
         collapsable: false,
         children: [
           '',
+          'command'
         ]
       }],
       '/common/ssh/': [{
@@ -248,6 +249,7 @@ module.exports = {
         collapsable: false,
         children: [
           '',
+          'pub-sub',
         ]
       }]
     }
