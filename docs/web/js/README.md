@@ -93,6 +93,32 @@ console.log(symbol1 === symbol2); // false
 ```
 若传入的构造参数是对象类型，则会调用该对象上的`toString`方法。
 
+#### Symbol作为属性名
+`Symbol`也可以作为对象的属性名
+```js
+var symbolProp1 = Symbol();
+var symbolProp2 = Symbol();
+var symbolProp3 = Symbol();
+
+var a = {
+    [symbolProp1]: 1,
+}
+
+a[symbolProp2] = 2
+
+Object.defineProperty(a, symbolProp3, { value: 3})
+
+console.log(a);
+```
+
+而要获取对象上的`Symbol`属性名，要通过`Object.getOwnPropertySymbols()`或者`Reflect.ownKeys()`
+```js
+Object.getOwnPropertySymbols(a);// 此方法是获取对象上的Symbol属性
+
+Reflect.ownKeys(a);// 此方法是获取对象上的所有属性，包括普通属性和Symbol属性
+```
+
+
 #### 共享的Symbol
 `Symbol.for(key)` 方法会根据给定的键 `key`，来从运行时的 `symbol` 注册表中找到对应的 `symbol`，如果找到了，则返回它，否则，新建一个与该键关联的 `symbol`，并放入全局 `symbol` 注册表中。
 ```js
@@ -255,5 +281,132 @@ a - 1;
 Object 是 JavaScript 中最复杂的类型，也是 JavaScript 的核心机制之一。Object 表示对象的意思，它是一切有形和无形物体的总称。
 
 在 JS 中，除了基本类型那么其他的都是对象类型了。对象类型和基本类型不同的是，基本类型存储的是值，对象类型存储的是地址（指针）。当你创建了一个对象类型的时候，计算机会在内存中帮我们开辟一个空间来存放值，但是我们需要找到这个空间，这个空间会拥有一个地址（指针）。
+
+### 浅克隆
+首先可以通过 `Object.assign` 来解决这个问题，很多人认为这是深克隆，其实并不是，对于基本类型，会复制器值到新对象，而对象类型的，则会克隆地址。
+```js
+var a = {
+    n: 1,
+    m: {
+        x: 1
+    }
+}
+var b = Object.assign({}, a);
+
+b.n = 2;
+b.m.x = 2;
+
+console.log(a.n); // 1
+console.log(a.m.x); // 2
+```
+
+也可以通过展开符`...`来进行浅克隆
+```js
+var a = {
+    n: 1,
+    m: {
+        x: 1
+    }
+}
+var b = { ...a }
+
+b.n = 2;
+b.m.x = 2;
+
+console.log(a.n); // 1
+console.log(a.m.x); // 2
+```
+
+### 深克隆
+对于一般的简单对象，可以通过`JSON.parse(JSON.stringify(Object))`来解决
+```js
+var a = {
+    n: 1,
+    m: {
+        x: 1
+    }
+};
+var b = JSON.parse(JSON.stringify(a));
+
+b.n = 2;
+b.m.x = 2;
+
+console.log(a.n); // 1
+console.log(a.m.x); // 1
+```
+但是，会存在一些问题：
+1. `undefined` 会被忽略
+2. `Symbol` 会被忽略
+3. `function` 会被忽略
+4. 不能解决循环引用
+
+```js
+var a = {
+    m: 1,
+    n: {
+        x: 1
+    },
+    o: undefined,
+    p: null,
+    q: Symbol(),
+    x: function () {},
+}
+var b = JSON.parse(JSON.stringify(a));
+console.log(b);
+//{
+//    m: 1,
+//    n: {
+//        x: 1
+//    },
+//    p: null,
+//}
+```
+
+:::tip
+对于一些需要复杂类型对象的深克隆，推荐使用 [lodash 的深拷贝函数](https://lodash.com/docs#cloneDeep)。
+:::
+
+当然，也可以自己研究实现深克隆方法，实现形式也是多样的，下面是其中一种：
+```js
+// 深克隆
+function deepClone(obj){
+    var objProto = Object.getPrototypeOf(obj);// 获取对象原型
+    var newObj = Object.create(objProto)// 创建新对象
+    var propNames = Reflect.ownKeys(obj);// 获取对象的属性名，包括Symbol
+
+    propNames.forEach(propName => {
+        var propType = Object.prototype.toString.call(obj[propName]);
+        if(propType === '[object Object]' || propType === '[object Array]') {
+            newObj[propName] = deepClone(obj[propName])
+        } else {
+            var propDescriptor = Object.getOwnPropertyDescriptor(obj, propName);// 获取属性描述
+            Object.defineProperty(newObj, propName, propDescriptor);// 定义属性描述
+        }
+    })
+
+    return newObj;
+}   
+
+var a = {
+    m: 1,
+    n: {
+        x: 1
+    },
+    o: undefined,
+    p: null,
+    q: Symbol(),
+    x: function () {},
+    [Symbol()]:2,
+}
+var b = deepClone(a);
+console.log(b);
+
+b.n = 2;
+b.m.x = 2;
+
+console.log(a.n); // 1
+console.log(a.m.x); // 1
+```
+
 
 ## 类型转换
