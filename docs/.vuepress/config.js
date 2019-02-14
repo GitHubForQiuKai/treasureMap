@@ -62,6 +62,7 @@ module.exports = {
           { text: '数据结构', link: '/common/data-structure/' },
           { text: '算法', link: '/common/algorithm/' },
           { text: '设计模式', link: '/common/design-pattern/' },
+          { text: '计算机', link: '/common/computer/' },
         ]
       },
       {
@@ -250,6 +251,13 @@ module.exports = {
         children: [
           '',
           'pub-sub',
+        ]
+      }],
+      '/common/computer/': [{
+        title: '计算机',
+        collapsable: false,
+        children: [
+          '',
         ]
       }]
     }

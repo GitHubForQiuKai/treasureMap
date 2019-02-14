@@ -6,6 +6,8 @@
 ### setInterval 定时执行
 ```setInterval(fn,100)```，每隔100m执行fn
 
+### requestAnimationFrame
+
 :::warning
 - setTimeout执行时间可能会**大于**给定时间。
 - setInterval间隔执行的时间可能会**小于**给定时间。
