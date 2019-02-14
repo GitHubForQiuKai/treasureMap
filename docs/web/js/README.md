@@ -67,6 +67,98 @@ console.log(y === void 0); // Uncaught ReferenceError: y is not defined
 ### Boolean
 
 ### Symbol
+ES6 引入了一种新的原始数据类型Symbol，表示独一无二的值。
+
+#### 基本介绍
+`Symbol()`函数会返回symbol类型的值，该类型具有静态属性和静态方法。
+
+它的静态属性会暴露几个内建的成员对象；
+它的静态方法会暴露全局的symbol注册，且类似于内建对象类。
+但是作为构造函数，它并不支持`new Symbol()`。
+
+可直接使用`Symbol()`创建新的`symbol`类型，并用一个可选的字符串作为其描述。
+```js
+var symbol1 = Symbol();
+var symbol2 = Symbol();
+var symbol3 = Symbol('a');
+var symbol4 = Symbol(1);
+var symbol5 = Symbol({a:1});
+
+console.log(typeof symbol1);// symbol
+
+console.log(symbol4.toString()); // Symbol(1)
+console.log(symbol5.toString()); // Symbol([object Object])
+
+console.log(symbol1 === symbol2); // false
+```
+若传入的构造参数是对象类型，则会调用该对象上的`toString`方法。
+
+#### 共享的Symbol
+`Symbol.for(key)` 方法会根据给定的键 `key`，来从运行时的 `symbol` 注册表中找到对应的 `symbol`，如果找到了，则返回它，否则，新建一个与该键关联的 `symbol`，并放入全局 `symbol` 注册表中。
+```js
+var symbol6 = Symbol.for('b');
+var symbol7 = Symbol.for('b');
+
+symbol6 === symbol7; // true
+```
+
+和 `Symbol()` 不同的是，用 `Symbol.for()` 方法创建的的 `symbol` 会被放入一个全局 `symbol` 注册表中。`Symbol.for()` 并不是每次都会创建一个新的 `symbol`，它会首先检查给定的 key 是否已经在注册表中了。假如是，则会直接返回上次存储的那个。否则，它会再新建一个。
+
+#### 内置Symbol值
+在ES6中，还提供了11种内置的`Symbol`来修改语言内部的一些原生行为。
+
+例如，我们可以使用 `Symbol.iterator` 自定义 `for…of` 在对象上的行为：
+```js
+var myIterable = {
+    [Symbol.iterator]:function* () {
+        yield 1;
+        yield 2;
+        yield 3;
+    }
+}
+
+for(var o of myIterable)
+    console.log(o) // 1 2 3
+
+var myIterable1 = {
+    [Symbol.iterator]:function () {
+        var i = 1;
+        return {
+            next: function(){
+                return {
+                    value: i ++,
+                    done: i > 4
+                }
+            }
+        }
+    }
+}
+
+for(var o of myIterable1)
+    console.log(o) // 1 2 3
+```
+:::tip
+关于`iterator`的更多行为可参考[迭代协议](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Iteration_protocols)。
+:::
+
+
+| 内置属性 | 说明 |
+| ------ | ------ |
+|Symbol.hasInstance|123|
+|Symbol.isConcatSpreadable|123|
+|Symbol.isConcatSpreadable|123|
+|Symbol.match|123|
+|Symbol.replace|123|
+|Symbol.search|123|
+|Symbol.split|123|
+|Symbol.iterator|123|
+|Symbol.toPrimitive|123|
+|Symbol.toStringTag|123|
+|Symbol.unscopables|123|
+
+
+具体详细信息可查看[JavaScript标准参考手册](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Symbol)。
+
 
 ## 基本类型对象
 在 JavaScript 中`String` `Number` `Boolean` `Symbol`都会有对应的基本类型对象。
@@ -112,7 +204,7 @@ console.log(Object.prototype.toString.call(symbolObject)); // [object symbol]
 ### 拆箱
 相反的，把引用类型转换为基本的数据类型称为**拆箱**。
 
-在 JavaScript 标准中，规定了 ToPrimitive 函数，它是对象类型到基本类型的转换。
+在 JavaScript 标准中，规定了 `@@ToPrimitive` 函数，它是对象类型到基本类型的转换。
 
 在拆箱过程中，会尝试调用`valueOf`和`toString`方法来获得拆箱后的基本类型。如果 `valueOf` 和 `toString` 都不存在，或者没有返回基本类型，则会产生类型错误 `TypeError`。
 ```js
