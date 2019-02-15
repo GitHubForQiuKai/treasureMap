@@ -408,5 +408,27 @@ console.log(a.n); // 1
 console.log(a.m.x); // 1
 ```
 
+### 数组对象的合并
+```js
+  merge(toArray, fromArray) {
+    const hash = {};
+    const newArray = [];
+    toArray.concat(fromArray).reduce((total, current) => {
+      if (hash[current.id]) {
+        const newObj = Object.assign({}, current, hash[current.id]);
+        const index = total.findIndex(item => item.id === current.id);
+        total.splice(index, 1, newObj);
+      } else {
+        hash[current.id] = current;
+        total.push(current);
+      }
+      return total;
+    }, newArray);
+
+    return newArray;
+  }
+```
+
+
 
 ## 类型转换
