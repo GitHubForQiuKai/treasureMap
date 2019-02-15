@@ -31,6 +31,17 @@ module.exports = {
         ]
       },
       {
+        text: '性能优化',
+        items: [
+          { text: 'JS', link: '/performance/js/' },
+          { text: 'HTML', link: '/performance/html/' },
+          { text: 'CSS', link: '/performance/css/' },
+          { text: '浏览器', link: '/performance/browser/' },
+          { text: 'Webpack', link: '/performance/browser/' },
+          { text: 'Vue', link: '/performance/browser/' },
+        ]
+      },
+      {
         text: '全栈',
         items: [
           { text: 'NodeJS', link: '/fullStack/nodejs/' },
