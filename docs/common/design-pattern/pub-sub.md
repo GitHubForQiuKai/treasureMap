@@ -8,11 +8,10 @@
 **发布/订阅模式和观察者模式本质是一样的，只是在实现上有所差异**，也可以说是观察者模式的改进版。
 
 ## 实现
-## 实现
 ### 要素
 - **角色**
     - [发布者（Publisher）](#发布者)
-        - **·** 增加、删除、通知观察者对象的方法
+        - **·** 发布具体的事件
     - [调度中心(Scheduler）](#调度中心)
         - **·** 负责管理自定义事件的整个生命周期
     - [订阅者（Subscriber）](#订阅者)
@@ -23,22 +22,83 @@
     - **·** 通知
     - **·** 更新
 
-### 发布者
-下面是js实现版：
-```js
-var Publisher = function() {
-    this.state = 1;
-}
-```
-
 ### 调度中心
 下面是js实现版：
 ```js
 var Scheduler = function() {
+    var clientList = {},
+        listen,
+        trigger,
+        remove;
+        
+    listen = function(key, fn){
+        if(!clientList[key]){
+            clientList[key] = [];
+        }
+        clientList[key].push(fn);
+    };
+
+    trigger = function(){
+        var key = Array.prototype.shift.call(arguments);
+        var fns = clientList[key];
+        if(!fns || !fns.length) return;
+
+        fns.forEach(fn => {
+            fn.call(this, arguments);
+        })
+    };
+
+    remove = function(key, fn){
+        var fns = clientList[key];
+        if(!fns || !fns.length) return;
+        if(!fn){// 如果没有传入具体的函数，则移除全部
+            fns.length = 0
+        }else{
+            fns.some((_fn,index) => {
+                if(_fn === fn){
+                    return !!fns.splice(index,1)
+                }
+            })
+        };
+    };
+
+    return {
+        listen,
+        trigger,
+        remove,
+    }
+}();
+```
+
+具体使用:
+```js
+var  Subscriber1 = function(){
+    console.log('收到add事件')
 }
 
-### 订阅者
-下面是js实现版：
-```js
-var Subscriber = function() {
+var  Subscriber2 = function(){
+    console.log('收到add事件')
 }
+
+var  Subscriber3 = function(){
+    console.log('收到delete事件')
+}
+
+Scheduler.listen('add', Subscriber1);
+Scheduler.listen('add', Subscriber2);
+Scheduler.listen('delete', Subscriber3);
+
+Scheduler.trigger('add'); 
+// 收到add事件  收到add事件
+Scheduler.trigger('delete'); 
+// 收到delete事件
+
+Scheduler.remove('add',Subscriber1);
+Scheduler.trigger('add'); 
+// 收到add事件
+
+Scheduler.remove('delete');
+Scheduler.trigger('delete'); 
+```
+
+## 离线缓存
