@@ -71,8 +71,8 @@ module.exports = {
           { text: 'Network', link: '/common/network/' },
           { text: 'RESTful', link: '/common/restful/' },
           { text: '数据结构', link: '/common/data-structure/' },
-          { text: '算法', link: '/common/algorithm/' },
           { text: '设计模式', link: '/common/design-pattern/' },
+          { text: '算法', link: '/common/algorithm/' },
           { text: '计算机', link: '/common/computer/' },
         ]
       },
@@ -249,19 +249,19 @@ module.exports = {
           '',
         ]
       }],
-      '/common/algorithm/': [{
-        title: '算法',
-        collapsable: false,
-        children: [
-          '',
-        ]
-      }],
       '/common/design-pattern/': [{
         title: '设计模式',
         collapsable: false,
         children: [
           '',
           'pub-sub',
+        ]
+      }],
+      '/common/algorithm/': [{
+        title: '算法',
+        collapsable: false,
+        children: [
+          '',
         ]
       }],
       '/common/computer/': [{

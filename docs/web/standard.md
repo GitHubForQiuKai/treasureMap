@@ -10,9 +10,9 @@ if(typeof Array.prototype.flat !== 'function') {
 	}
 }
 
-function _new(fn, ...arg) {
+function _new(fn) {
     var obj = Object.create(fn.prototype);
-    fn.call(obj, ...arg);
+    fn.apply(obj, arguments);
     return obj;
 }
 ```

@@ -408,6 +408,46 @@ console.log(a.n); // 1
 console.log(a.m.x); // 1
 ```
 
+### 寄生组合式继承
+```js
+function inherit(child, parent){
+    if(typeof child !== 'function' || typeof child !== 'function') return
+    var parentProto = Object.create(parent.prototype);
+    parentProto.constructor = child;
+    child.prototype = parentProto;
+}
+
+var Sup = function(){
+    this.name = 'sup';
+}
+Sup.prototype.name = 'sup1';
+Sup.prototype.say = function() {
+    console.log(this.name);
+}
+
+var Sub = function(name){
+    this.name = name;
+}
+
+inherit(Sub,Sup);
+
+var sub1 = new Sub();
+sub1.say();// undefined
+console.log(sub1.name);// undefined
+
+var sub2 = new Sub('sub');
+sub2.say();// sub
+```
+
+### new对象
+```js
+function _new(fn,...args){
+    var newObj = Object.create(fn.prototype);
+    fn.apply(newObj, args);
+    return newObj;
+}
+```
+
 ### 数组对象的合并
 ```js
   merge(toArray, fromArray) {

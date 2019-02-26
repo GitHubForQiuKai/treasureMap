@@ -54,7 +54,7 @@ var Scheduler = function() {
         if(!fn){// 如果没有传入具体的函数，则移除全部
             fns.length = 0
         }else{
-            fns.some((_fn,index) => {
+            fns.forEach((_fn,index) => {
                 if(_fn === fn){
                     return !!fns.splice(index,1)
                 }
