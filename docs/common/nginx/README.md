@@ -26,3 +26,25 @@ nginx -s reload
         #IE6对Gzip不怎么友好，不给它Gzip了
         gzip_disable "MSIE [1-8]\.";
 ```
+
+- https证书配置
+```shell
+server {
+        listen 443 ssl;
+        server_name www.domain.com; #绑定证书的域名
+
+        ssl_certificate 1_www.domain.com_bundle.crt;
+        ssl_certificate_key 2_www.domain.com.key;
+        ssl_session_timeout 5m;
+        ssl_protocols TLSv1 TLSv1.1 TLSv1.2; #协议配置
+        ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:HIGH:!aNULL:!MD5:!RC4:!DHE;#套件配置
+        ssl_prefer_server_ciphers on;
+
+        location / {
+            root   html; #站点目录
+            index  index.html index.htm;
+        }
+}
+
+# 需要将80端口的http重定向到https     rewrite ^(.*) https://$server_name$1 permanent;
+```
