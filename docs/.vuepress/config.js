@@ -81,6 +81,7 @@ module.exports = {
         items: [
           { text: '树莓派', link: '/other/树莓派/' },
           { text: '机器学习', link: '/other/机器学习/' },
+          { text: '面试', link: '/other/面试/' },
         ]
       },
       {
