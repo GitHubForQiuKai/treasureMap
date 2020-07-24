@@ -11,6 +11,6 @@
     "docs:deploy": "./deploy.sh"
   },
   "devDependencies": {
-    "vuepress": "^0.13.0"
+    "vuepress": "^1.5.2"
   }
 }
