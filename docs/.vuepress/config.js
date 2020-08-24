@@ -1,4 +1,5 @@
 module.exports = {
+  theme: 'reco',
   markdown: {
     lineNumbers: false
   },
@@ -6,13 +7,35 @@ module.exports = {
     '/': {
       lang: 'zh-CN',
       title: 'TreasureMap',
-      description: 'A treasure map of technical knowledge'
+      description: 'Treasure map of technical knowledge'
     }
   },
   title: 'TreasureMap',
   description: 'Just playing around',
   base: '/treasureMap/',
   themeConfig: {
+    mode: 'light', // 默认 auto，auto 跟随系统，dark 暗色模式，light 亮色模式
+    modePicker: true, // 默认 true，false 不显示模式调节按钮，true 则显示
+    author: 'qiukai',
+    home: true,
+    type: 'blog',
+    // 博客配置
+    blogConfig: {
+      // category: {
+      //   location: 2,     // 在导航栏菜单中所占的位置，默认2
+      //   text: '博客' // 默认文案 “分类”
+      // },
+      tag: {
+        location: 8,     // 在导航栏菜单中所占的位置，默认3
+        text: '博客'      // 默认文案 “标签”
+      }
+    },
+    valineConfig: {
+      placeholder: '请输入内容',
+      appId: '4sL56PLj0p03SF9QEyK3WVbp-gzGzoHsz',// your appId
+      appKey: 'rSciP6I8SrFAUyTUiXbbef5q', // your appKey
+      lang: 'zh-CN',
+    },
     repo: 'GitHubForQiuKai/treasureMap',
     lastUpdated: '上次更新',
     sidebarDepth: 3,
