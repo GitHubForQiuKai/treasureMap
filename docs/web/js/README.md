@@ -2,12 +2,12 @@
 
 ## 基本类型
 在js中有6中基本类型：
-- **·** Undefined
-- **·** Null
-- **·** String
-- **·** Number
-- **·** Boolean
-- **·** Symbol
+- Undefined
+- Null
+- String
+- Number
+- Boolean
+- Symbol
 
 首先基本类型存储的都是值，基本类型的数据不具备“对象”的特性——不携带属性、没有方法可调用。 沿用它们只是为了迎合人类根深蒂固的习惯，并的确能简单、有效地进行常规数据处理。
 
@@ -67,7 +67,7 @@ console.log(y === void 0); // Uncaught ReferenceError: y is not defined
 ### Boolean
 
 ### Symbol
-ES6 引入了一种新的原始数据类型Symbol，表示独一无二的值。
+ES6 引入了一种新的原始数据类型`Symbol`，表示独一无二的值。
 
 #### 基本介绍
 `Symbol()`函数会返回symbol类型的值，该类型具有静态属性和静态方法。

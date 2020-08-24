@@ -13,7 +13,7 @@
 ### Vue Diff(patch) 算法
 深度优先，同层比较，时间复杂度O(n)
 ```js
-mountComponent -> patch -> patchVnode -> updateChildren -> sameVnode 
+mountComponent -> updateComponent -> patch -> patchVnode -> updateChildren -> sameVnode 
 -> patchVnode(递归)
 ```
 
