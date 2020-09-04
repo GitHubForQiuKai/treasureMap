@@ -53,17 +53,17 @@ module.exports = {
           { text: '浏览器', link: '/web/browser/' },
         ]
       },
-      {
-        text: '性能优化',
-        items: [
-          { text: 'JS', link: '/performance/js/' },
-          { text: 'HTML', link: '/performance/html/' },
-          { text: 'CSS', link: '/performance/css/' },
-          { text: '浏览器', link: '/performance/browser/' },
-          { text: 'Webpack', link: '/performance/browser/' },
-          { text: 'Vue', link: '/performance/browser/' },
-        ]
-      },
+      // {
+      //   text: '性能优化',
+      //   items: [
+      //     { text: 'JS', link: '/performance/js/' },
+      //     { text: 'HTML', link: '/performance/html/' },
+      //     { text: 'CSS', link: '/performance/css/' },
+      //     { text: '浏览器', link: '/performance/browser/' },
+      //     { text: 'Webpack', link: '/performance/browser/' },
+      //     { text: 'Vue', link: '/performance/browser/' },
+      //   ]
+      // },
       {
         text: '全栈',
         items: [
@@ -89,13 +89,13 @@ module.exports = {
         items: [
           { text: 'Git', link: '/common/git/' },
           { text: 'Nginx', link: '/common/nginx/' },
+          { text: '数据结构', link: '/common/data-structure/' },
+          { text: '算法', link: '/common/algorithm/' },
+          { text: '设计模式', link: '/common/design-pattern/' },
           { text: 'SSH', link: '/common/ssh/' },
           { text: 'Linux', link: '/common/linux/' },
           { text: 'Network', link: '/common/network/' },
           { text: 'RESTful', link: '/common/restful/' },
-          { text: '数据结构', link: '/common/data-structure/' },
-          { text: '设计模式', link: '/common/design-pattern/' },
-          { text: '算法', link: '/common/algorithm/' },
           { text: '计算机', link: '/common/computer/' },
         ]
       },
@@ -170,6 +170,8 @@ module.exports = {
         collapsable: false,
         children: [
           '',
+          'observer',
+          'async-update'
         ]
       }],
       '/frame/webpack/': [{
@@ -286,6 +288,7 @@ module.exports = {
         collapsable: false,
         children: [
           '',
+          'quick-sort'
         ]
       }],
       '/common/computer/': [{
