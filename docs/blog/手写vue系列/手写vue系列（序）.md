@@ -7,6 +7,7 @@ categories:
 tags:
  - vue
 publish: true
+sticky: 1
 ---
 
 
@@ -15,7 +16,7 @@ publish: true
 
 俗话说的好：完事开头难。今天终于鼓起勇气开始行动了，既然都开了个好头，希望自己能坚持下去。
 
-:::
+:::tip
 鲁迅曾说过：Talk is cheap. Show me the code.
 :::
 
@@ -24,12 +25,12 @@ publish: true
 
 1. [手写Vue系列（一）](/blog/手写vue系列/手写vue系列（一）.html)：`vue-cli2.x`
 2. [手写Vue系列（二）](/blog/手写vue系列/手写vue系列（二）.html)：`vue-router`
+3. [手写Vue系列（三）](/blog/手写vue系列/手写vue系列（三）.html)：`vuex`
 
 ### TODOS
 - 手写`element-ui`
-- 手写`vuex`
 - 手写`nuxt`
 - 手写`vue1.x`
 - 手写`vue2.x`
 - 手写`vue3.x`
-- 手写`nuxt`
+- ...
