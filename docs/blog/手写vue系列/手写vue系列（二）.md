@@ -107,7 +107,14 @@ const app = new Vue({
 </template>
 ```
 
-## 分析实现
+## 实现目标
+- 导航功能
+- 视图渲染功能
+- 支持`router-view`的嵌套功能
+
+---
+
+## 具体实现
 从上诉来分析`vue-router`的基本实现，主要可以概括为`3`部分：
 - `VueRouter`类
 - `router-view`组件
@@ -182,7 +189,7 @@ QuickRouter.install = (Vue) => {
 }
 ```
 :::tip  
-由于`Vue.use`注册在前，所以需要延迟待`router`对象产生后，再借用`mixin`的`beforeCreate`进行挂载。
+由于`Vue.use`注册在前，所以需要延迟待`router`对象产生后，通过`new Vue({ router })`的`options`传入，再借用`mixin`的`beforeCreate`进行挂载。
 :::
 
 ### 加载`router`配置
@@ -447,6 +454,9 @@ class QuickRouter {
 对于如何找到正确的`depth`位置，官方是通过赋值`data.routerView`，然后每次遍历其`parent`上的`data`是否有`routerView`属性来判断其是否是`routerView`组件。
 :::
 
-## 代码
-- [git地址](https://github.com/GitHubForQiuKai/quick-router)
+## 最终实现效果
+![](../../assets/vue-router.jpg)
+
+## 链接
+- [代码git地址](https://github.com/GitHubForQiuKai/quick-router)
 - [博客地址](https://qiukai666.gitee.io/treasureMap/blog/%E6%89%8B%E5%86%99vue%E7%B3%BB%E5%88%97/%E6%89%8B%E5%86%99vue%E7%B3%BB%E5%88%97%EF%BC%88%E4%BA%8C%EF%BC%89.html)

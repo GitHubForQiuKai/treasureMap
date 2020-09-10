@@ -12,13 +12,12 @@ publish: true
 # 前言
 本文将一步步从零实现`vue-cli2.x`的核心流程；并将其命名为`quick-cli`。
 
-# 实现目标
+## 实现目标
 - 实现初始化项目`vue init <template-name> <project-name>`命令  
 - 实现获取所有模板`vue templates`命令
 
 ---
 
-# 具体实现
 ## 创建工程
 ```sh
 mkdir quick-cli
